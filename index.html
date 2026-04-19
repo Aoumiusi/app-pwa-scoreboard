@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#222222">
+    <title>シンプル得点板</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .scoreboard {
+            display: flex;
+            flex-direction: column;
+            background-color: #222;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .set-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .set-label {
+            color: white;
+            font-size: 16px;
+        }
+        
+        .set-count-selector {
+            background-color: #444;
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .timer {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            width: 120px;
+            background-color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .timer-btn {
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .team {
+            width: 48%;
+            text-align: center;
+        }
+        
+        .team-name {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 10px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .team-name[contenteditable="true"]:focus {
+            outline: 2px solid #4CAF50;
+        }
+        
+        .score-display {
+            position: relative;
+            height: 180px;
+            overflow: hidden;
+            background-color: #333;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .score-display:hover {
+            background-color: #3a3a3a;
+        }
+        
+        .score-flip {
+            position: relative;
+            height: 100%;
+            transition: transform 0.3s;
+            transform-style: preserve-3d;
+        }
+        
+        .score-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 100px;
+            font-weight: bold;
+            color: white;
+            background-color: #333;
+            border-radius: 10px;
+        }
+        
+        .sets-display {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            gap: 5px;
+        }
+        
+        .set {
+            color: white;
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #444;
+            border-radius: 4px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .set.active {
+            border: 2px solid #4CAF50;
+        }
+        
+        .control-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .control-btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .control-btn.reset {
+            background-color: #f44336;
+        }
+        
+        .swipe-instruction {
+            text-align: center;
+            color: white;
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .score-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .score-btn {
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .score-btn:hover {
+            background-color: #555;
+        }
+        
+        .score-btn.plus {
+            background-color: #4CAF50;
+        }
+        
+        .score-btn.plus:hover {
+            background-color: #5CBF60;
+        }
+        
+        .score-btn.minus {
+            background-color: #f44336;
+        }
+        
+        .score-btn.minus:hover {
+            background-color: #f66356;
+        }
+        
+        .keyboard-help {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .keyboard-help h4 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+            font-size: 14px;
+        }
+        
+        .keyboard-help .shortcuts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        
+        .keyboard-help .shortcut {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .keyboard-help .key {
+            background-color: #555;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .result-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        
+        .result-message.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .result-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: gold;
+        }
+        
+        .result-content {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .result-close {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        /* インストールプロンプト用のスタイル */
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 1001;
+        }
+        
+        .install-message {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .install-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        
+        .install-btn {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .close-btn {
+            padding: 8px 15px;
+            background-color: #666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="scoreboard">
+            <div class="header">
+                <div class="set-selector">
+                    <label for="setCount" class="set-label">セット数:</label>
+                    <select id="setCount" class="set-count-selector">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                <div class="timer" id="timer">00:00</div>
+                <div class="timer-controls">
+                    <button class="timer-btn" id="startTimer">開始</button>
+                    <button class="timer-btn" id="resetTimer">リセット</button>
+                </div>
+            </div>
+            
+            <div class="teams">
+                <div class="team">
+                    <div class="team-name" contenteditable="true">チーム A</div>
+                    <div class="score-display" id="team1ScoreDisplay">
+                        <div class="score-flip" id="team1ScoreFlip">
+                            <div class="score-card">0</div>
+                        </div>
+                    </div>
+                    <div class="sets-display" id="team1Sets">
+                        <div class="set set1">0</div>
+                        <div class="set set2">0</div>
+                        <div class="set set3">0</div>
+                        <div class="set set4">0</div>
+                        <div class="set set5">0</div>
+                    </div>
+                    <div class="score-controls">
+                        <button class="score-btn plus" data-team="team1" data-action="increment">+1</button>
+                        <button class="score-btn" data-team="team1" data-action="set">セット</button>
+                        <button class="score-btn minus" data-team="team1" data-action="decrement">-1</button>
+                    </div>
+                </div>
+                
+                <div class="team">
+                    <div class="team-name" contenteditable="true">チーム B</div>
+                    <div class="score-display" id="team2ScoreDisplay">
+                        <div class="score-flip" id="team2ScoreFlip">
+                            <div class="score-card">0</div>
+                        </div>
+                    </div>
+                    <div class="sets-display" id="team2Sets">
+                        <div class="set set1">0</div>
+                        <div class="set set2">0</div>
+                        <div class="set set3">0</div>
+                        <div class="set set4">0</div>
+                        <div class="set set5">0</div>
+                    </div>
+                    <div class="score-controls">
+                        <button class="score-btn plus" data-team="team2" data-action="increment">+1</button>
+                        <button class="score-btn" data-team="team2" data-action="set">セット</button>
+                        <button class="score-btn minus" data-team="team2" data-action="decrement">-1</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="swipe-instruction">
+                スマホ: ↑↓スワイプで得点変更、ダブルタップでセット獲得<br>
+                PC: マウスホイールで得点変更、ダブルクリックでセット獲得
+            </div>
+            
+            <div class="keyboard-help">
+                <h4>キーボードショートカット</h4>
+                <div class="shortcuts">
+                    <div class="shortcut"><span>チーム1 +1:</span> <span class="key">Q</span></div>
+                    <div class="shortcut"><span>チーム1 -1:</span> <span class="key">A</span></div>
+                    <div class="shortcut"><span>チーム2 +1:</span> <span class="key">P</span></div>
+                    <div class="shortcut"><span>チーム2 -1:</span> <span class="key">L</span></div>
+                    <div class="shortcut"><span>チーム1セット:</span> <span class="key">1</span></div>
+                    <div class="shortcut"><span>チーム2セット:</span> <span class="key">2</span></div>
+                    <div class="shortcut"><span>タイマー:</span> <span class="key">Space</span></div>
+                    <div class="shortcut"><span>ゲーム終了:</span> <span class="key">N</span></div>
+                    <div class="shortcut"><span>リセット:</span> <span class="key">R</span></div>
+                </div>
+            </div>
+            
+            <div class="control-buttons">
+                <button class="control-btn" id="endGame">ゲーム終了</button>
+                <button class="control-btn reset" id="resetScores">リセット</button>
+            </div>
+        </div>
+        
+        <!-- 結果表示モーダル -->
+        <div class="result-message" id="resultMessage">
+            <h2 class="result-title" id="resultTitle">試合終了</h2>
+            <div class="result-content" id="resultContent"></div>
+            <button class="result-close" id="resultClose">閉じる</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 要素の参照を取得
+            const team1ScoreDisplay = document.getElementById('team1ScoreDisplay');
+            const team2ScoreDisplay = document.getElementById('team2ScoreDisplay');
+            const team1ScoreFlip = document.getElementById('team1ScoreFlip');
+            const team2ScoreFlip = document.getElementById('team2ScoreFlip');
+            const team1SetsDisplay = document.getElementById('team1Sets');
+            const team2SetsDisplay = document.getElementById('team2Sets');
+            const endGameBtn = document.getElementById('endGame');
+            const resetScoresBtn = document.getElementById('resetScores');
+            const timerElement = document.getElementById('timer');
+            const startTimerBtn = document.getElementById('startTimer');
+            const resetTimerBtn = document.getElementById('resetTimer');
+            const resultMessage = document.getElementById('resultMessage');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            const resultClose = document.getElementById('resultClose');
+            const setCountSelector = document.getElementById('setCount');
+            
+            // チーム1とチーム2のセット要素を取得
+            const team1Sets = team1SetsDisplay.querySelectorAll('.set');
+            const team2Sets = team2SetsDisplay.querySelectorAll('.set');
+            
+            // スコアボタンの参照を取得
+            const scoreButtons = document.querySelectorAll('.score-btn');
+            
+            // 得点の状態を管理
+            const gameState = {
+                team1: {
+                    score: 0,
+                    sets: [0, 0, 0, 0, 0]
+                },
+                team2: {
+                    score: 0,
+                    sets: [0, 0, 0, 0, 0]
+                },
+                currentSet: 0,
+                maxSets: 3, // デフォルトは3セット
+                timerRunning: false,
+                timerSeconds: 0,
+                timerInterval: null
+            };
+            
+            // ポイント設定
+            const pointSettings = {
+                pointsToWin: 25,    // 勝利に必要なポイント
+                minPointDiff: 2,    // 勝利に必要な最小点差
+                maxScore: 30        // 最大スコア
+            };
+            
+            // セット数変更時の処理
+            setCountSelector.addEventListener('change', function() {
+                // 選択されたセット数に更新
+                gameState.maxSets = parseInt(this.value);
+                updateSetsVisibility();
+                
+                // リセットはゲーム中のみオプションとする
+                if (isGameInProgress()) {
+                    resetScores();
+                }
+            });
+            
+            // ゲームが進行中かどうかを確認
+            function isGameInProgress() {
+                // 現在のセットが0より大きい、または現在のセットで得点がある場合
+                return gameState.currentSet > 0 || gameState.team1.score > 0 || gameState.team2.score > 0;
+            }
+            
+            // セットの表示/非表示を更新
+            function updateSetsVisibility() {
+                // すべてのセット要素を取得
+                for (let i = 0; i < 5; i++) {
+                    // 選択されたセット数に基づいて表示/非表示を設定
+                    const isVisible = i < gameState.maxSets;
+                    team1Sets[i].style.display = isVisible ? 'flex' : 'none';
+                    team2Sets[i].style.display = isVisible ? 'flex' : 'none';
+                }
+                
+                // 現在のセットが最大セット数を超えていたら調整
+                if (gameState.currentSet >= gameState.maxSets) {
+                    gameState.currentSet = gameState.maxSets - 1;
+                    highlightCurrentSet();
+                }
+            }
+            
+            // スワイプイベントの処理 - チーム1
+            let team1StartY, team1EndY;
+            team1ScoreDisplay.addEventListener('touchstart', function(e) {
+                team1StartY = e.touches[0].clientY;
+            });
+            
+            team1ScoreDisplay.addEventListener('touchmove', function(e) {
+                e.preventDefault(); // スクロールを防止
+                team1EndY = e.touches[0].clientY;
+            });
+            
+            team1ScoreDisplay.addEventListener('touchend', function() {
+                if (team1StartY && team1EndY) {
+                    const difference = team1StartY - team1EndY;
+                    if (difference > 50) { // 上スワイプ
+                        incrementScore('team1');
+                    } else if (difference < -50) { // 下スワイプ
+                        decrementScore('team1');
+                    }
+                }
+                team1StartY = null;
+                team1EndY = null;
+            });
+            
+            // ダブルクリック/タップ処理 - チーム1
+            team1ScoreDisplay.addEventListener('dblclick', function() {
+                awardSet('team1');
+            });
+            
+            // スワイプイベントの処理 - チーム2
+            let team2StartY, team2EndY;
+            team2ScoreDisplay.addEventListener('touchstart', function(e) {
+                team2StartY = e.touches[0].clientY;
+            });
+            
+            team2ScoreDisplay.addEventListener('touchmove', function(e) {
+                e.preventDefault(); // スクロールを防止
+                team2EndY = e.touches[0].clientY;
+            });
+            
+            team2ScoreDisplay.addEventListener('touchend', function() {
+                if (team2StartY && team2EndY) {
+                    const difference = team2StartY - team2EndY;
+                    if (difference > 50) { // 上スワイプ
+                        incrementScore('team2');
+                    } else if (difference < -50) { // 下スワイプ
+                        decrementScore('team2');
+                    }
+                }
+                team2StartY = null;
+                team2EndY = null;
+            });
+            
+            // ダブルクリック/タップ処理 - チーム2
+            team2ScoreDisplay.addEventListener('dblclick', function() {
+                awardSet('team2');
+            });
+            
+            // マウスホイールイベント - チーム1
+            team1ScoreDisplay.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                if (e.deltaY < 0) { // ホイールアップ
+                    incrementScore('team1');
+                } else if (e.deltaY > 0) { // ホイールダウン
+                    decrementScore('team1');
+                }
+            });
+            
+            // マウスホイールイベント - チーム2
+            team2ScoreDisplay.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                if (e.deltaY < 0) { // ホイールアップ
+                    incrementScore('team2');
+                } else if (e.deltaY > 0) { // ホイールダウン
+                    decrementScore('team2');
+                }
+            });
+            
+            // スコアボタンのクリックイベント
+            scoreButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const team = this.dataset.team;
+                    const action = this.dataset.action;
+                    
+                    switch(action) {
+                        case 'increment':
+                            incrementScore(team);
+                            break;
+                        case 'decrement':
+                            decrementScore(team);
+                            break;
+                        case 'set':
+                            awardSet(team);
+                            break;
+                    }
+                });
+            });
+            
+            // ボタン操作
+            endGameBtn.addEventListener('click', showGameResult);
+            resetScoresBtn.addEventListener('click', resetScores);
+            
+            // タイマー制御
+            startTimerBtn.addEventListener('click', function() {
+                if (gameState.timerRunning) {
+                    pauseTimer();
+                    startTimerBtn.textContent = '開始';
+                } else {
+                    startTimer();
+                    startTimerBtn.textContent = '一時停止';
+                }
+            });
+            
+            resetTimerBtn.addEventListener('click', function() {
+                resetTimer();
+                startTimerBtn.textContent = '開始';
+            });
+            
+            // 結果モーダルを閉じる
+            resultClose.addEventListener('click', function() {
+                resultMessage.classList.remove('visible');
+            });
+            
+            // 得点を増加
+            function incrementScore(team) {
+                if (gameState[team].score < pointSettings.maxScore) {
+                    gameState[team].score += 1;
+                    updateScoreDisplay(team);
+                    
+                    // 勝利条件をチェック
+                    checkWinCondition();
+                }
+            }
+            
+            // 得点を減少
+            function decrementScore(team) {
+                if (gameState[team].score > 0) {
+                    gameState[team].score -= 1;
+                    updateScoreDisplay(team);
+                }
+            }
+            
+            // 得点表示を更新
+            function updateScoreDisplay(team) {
+                const scoreElement = team === 'team1' ? team1ScoreFlip : team2ScoreFlip;
+                const scoreCard = scoreElement.querySelector('.score-card');
+                scoreCard.textContent = gameState[team].score;
+            }
+            
+            // 勝利条件をチェック
+            function checkWinCondition() {
+                const team1Score = gameState.team1.score;
+                const team2Score = gameState.team2.score;
+                const pointsToWin = pointSettings.pointsToWin;
+                const minDiff = pointSettings.minPointDiff;
+                
+                // 勝利条件が満たされた場合
+                if ((team1Score >= pointsToWin && team1Score - team2Score >= minDiff) ||
+                    (team2Score >= pointsToWin && team2Score - team1Score >= minDiff)) {
+                    
+                    // セットを記録
+                    if (team1Score > team2Score) {
+                        awardSet('team1');
+                    } else {
+                        awardSet('team2');
+                    }
+                }
+            }
+            
+            // セットを獲得
+            function awardSet(team) {
+                if (gameState.currentSet < gameState.maxSets) {
+                    // 両チームの得点をセットに記録
+                    gameState.team1.sets[gameState.currentSet] = gameState.team1.score;
+                    gameState.team2.sets[gameState.currentSet] = gameState.team2.score;
+                    
+                    // セット表示を更新
+                    updateSetsDisplay();
+                    
+                    // 最後のセットでなければ次のセットへ、最後のセットなら試合終了
+                    if (gameState.currentSet < gameState.maxSets - 1) {
+                        startNewSet();
+                    } else {
+                        // 試合終了、結果を表示
+                        showGameResult();
+                    }
+                }
+            }
+            
+            // セット表示を更新
+            function updateSetsDisplay() {
+                // チーム1とチーム2のセット
+                for (let i = 0; i < 5; i++) {
+                    // セット得点を表示
+                    team1Sets[i].textContent = gameState.team1.sets[i];
+                    team2Sets[i].textContent = gameState.team2.sets[i];
+                    
+                    // 勝者のスコアを青色でハイライト
+                    if (i <= gameState.currentSet) {
+                        if (gameState.team1.sets[i] > gameState.team2.sets[i]) {
+                            team1Sets[i].style.backgroundColor = '#1E90FF'; // 青色
+                            team2Sets[i].style.backgroundColor = '#444'; // デフォルト色
+                        } else if (gameState.team2.sets[i] > gameState.team1.sets[i]) {
+                            team2Sets[i].style.backgroundColor = '#1E90FF'; // 青色
+                            team1Sets[i].style.backgroundColor = '#444'; // デフォルト色
+                        } else {
+                            // 引き分け、または未プレイ
+                            team1Sets[i].style.backgroundColor = '#444';
+                            team2Sets[i].style.backgroundColor = '#444';
+                        }
+                    }
+                }
+            }
+            
+            // 現在のセットをハイライト
+            function highlightCurrentSet() {
+                // すべてのセットからアクティブクラスを削除
+                for (let i = 0; i < 5; i++) {
+                    team1Sets[i].classList.remove('active');
+                    team2Sets[i].classList.remove('active');
+                    team1Sets[i].style.border = 'none';
+                    team2Sets[i].style.border = 'none';
+                }
+                
+                // 現在のセットをハイライト
+                if (gameState.currentSet < gameState.maxSets) {
+                    team1Sets[gameState.currentSet].classList.add('active');
+                    team2Sets[gameState.currentSet].classList.add('active');
+                    team1Sets[gameState.currentSet].style.border = '2px solid #4CAF50';
+                    team2Sets[gameState.currentSet].style.border = '2px solid #4CAF50';
+                }
+            }
+            
+            // 新しいセットを開始
+            function startNewSet() {
+                if (gameState.currentSet < gameState.maxSets - 1) {
+                    gameState.currentSet += 1;
+                    gameState.team1.score = 0;
+                    gameState.team2.score = 0;
+                    
+                    // 得点表示をリセット
+                    updateScoreDisplay('team1');
+                    updateScoreDisplay('team2');
+                    
+                    // 現在のセットをハイライト
+                    highlightCurrentSet();
+                }
+            }
+            
+            // スコアをリセット
+            function resetScores() {
+                gameState.team1.score = 0;
+                gameState.team2.score = 0;
+                gameState.team1.sets = [0, 0, 0, 0, 0];
+                gameState.team2.sets = [0, 0, 0, 0, 0];
+                gameState.currentSet = 0;
+                
+                // 表示をリセット
+                updateScoreDisplay('team1');
+                updateScoreDisplay('team2');
+                
+                // セットの背景色をリセット
+                for (let i = 0; i < 5; i++) {
+                    team1Sets[i].style.backgroundColor = '#444';
+                    team2Sets[i].style.backgroundColor = '#444';
+                    team1Sets[i].textContent = '0';
+                    team2Sets[i].textContent = '0';
+                    team1Sets[i].style.border = 'none';
+                    team2Sets[i].style.border = 'none';
+                }
+                
+                updateSetsVisibility();
+                highlightCurrentSet();
+                resetTimer();
+                
+                // 結果モーダルを非表示
+                resultMessage.classList.remove('visible');
+            }
+            
+            // 試合結果を表示
+            function showGameResult() {
+                const team1Name = document.querySelector('.team:nth-child(1) .team-name').textContent;
+                const team2Name = document.querySelector('.team:nth-child(2) .team-name').textContent;
+                
+                // セット勝利数をカウント
+                let team1Wins = 0;
+                let team2Wins = 0;
+                
+                for (let i = 0; i <= gameState.currentSet; i++) {
+                    if (gameState.team1.sets[i] > gameState.team2.sets[i]) {
+                        team1Wins++;
+                    } else if (gameState.team2.sets[i] > gameState.team1.sets[i]) {
+                        team2Wins++;
+                    }
+                }
+                
+                // 結果タイトルを設定
+                resultTitle.textContent = '試合終了！';
+                
+                // 結果テキストを作成
+                let resultText = '';
+                if (team1Wins > team2Wins) {
+                    resultText = `${team1Name} の勝利！<br>セットカウント: ${team1Wins}-${team2Wins}`;
+                } else if (team2Wins > team1Wins) {
+                    resultText = `${team2Name} の勝利！<br>セットカウント: ${team1Wins}-${team2Wins}`;
+                } else {
+                    resultText = `引き分け！<br>セットカウント: ${team1Wins}-${team2Wins}`;
+                }
+                
+                // これまでのセットスコアを表示
+                resultText += '<br><br>【セットスコア】<br>';
+                for (let i = 0; i < gameState.maxSets; i++) {
+                    if (i <= gameState.currentSet) {
+                        resultText += `セット${i + 1}: ${team1Name} ${gameState.team1.sets[i]} - ${gameState.team2.sets[i]} ${team2Name}<br>`;
+                    }
+                }
+                
+                // 結果コンテンツを設定して表示
+                resultContent.innerHTML = resultText;
+                resultMessage.classList.add('visible');
+            }
+            
+            // タイマーを開始
+            function startTimer() {
+                if (!gameState.timerRunning) {
+                    gameState.timerRunning = true;
+                    gameState.timerInterval = setInterval(updateTimer, 1000);
+                }
+            }
+            
+            // タイマーを一時停止
+            function pauseTimer() {
+                if (gameState.timerRunning) {
+                    gameState.timerRunning = false;
+                    clearInterval(gameState.timerInterval);
+                }
+            }
+            
+            // タイマーをリセット
+            function resetTimer() {
+                pauseTimer();
+                gameState.timerSeconds = 0;
+                updateTimerDisplay();
+            }
+            
+            // タイマーを更新
+            function updateTimer() {
+                gameState.timerSeconds += 1;
+                updateTimerDisplay();
+            }
+            
+            // タイマー表示を更新
+            function updateTimerDisplay() {
+                const minutes = Math.floor(gameState.timerSeconds / 60);
+                const seconds = gameState.timerSeconds % 60;
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // キーボードイベント
+            document.addEventListener('keydown', function(e) {
+                switch(e.key) {
+                    case 'q': // チーム1 得点+1
+                        incrementScore('team1');
+                        break;
+                    case 'a': // チーム1 得点-1
+                        decrementScore('team1');
+                        break;
+                    case 'p': // チーム2 得点+1
+                        incrementScore('team2');
+                        break;
+                    case 'l': // チーム2 得点-1
+                        decrementScore('team2');
+                        break;
+                    case '1': // チーム1 セット獲得
+                        awardSet('team1');
+                        break;
+                    case '2': // チーム2 セット獲得
+                        awardSet('team2');
+                        break;
+                    case 'n': // ゲーム終了
+                        showGameResult();
+                        break;
+                    case 'r': // リセット
+                        resetScores();
+                        break;
+                    case ' ': // タイマー開始/停止
+                        if (gameState.timerRunning) {
+                            pauseTimer();
+                            startTimerBtn.textContent = '開始';
+                        } else {
+                            startTimer();
+                            startTimerBtn.textContent = '一時停止';
+                        }
+                        break;
+                }
+            });
+            
+            // 初期設定
+            updateSetsVisibility();
+            highlightCurrentSet();
+        });
+    </script>
+    
+    <!-- PWA対応のためのスクリプト -->
+    <script>
+        // サービスワーカーの登録
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker登録成功: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker登録失敗: ', error);
+                    });
+            });
+        }
+        
+        // インストールプロンプト表示の処理
+        let deferredPrompt;
+        const installButton = document.createElement('button');
+        installButton.style.display = 'none';
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // インストールプロンプトの表示を阻止
+            e.preventDefault();
+            // イベントを保存
+            deferredPrompt = e;
+            // インストールボタンを表示
+            const installPrompt = document.createElement('div');
+            installPrompt.className = 'install-prompt';
+            installPrompt.innerHTML = `
+                <div class="install-message">
+                    <p>このアプリをホーム画面に追加しますか？</p>
+                    <div class="install-buttons">
+                        <button id="installButton" class="install-btn">インストール</button>
+                        <button id="closePromptButton" class="close-btn">閉じる</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(installPrompt);
+            
+            // インストールボタンにイベントリスナーを追加
+            document.getElementById('installButton').addEventListener('click', async () => {
+                // インストールプロンプトを表示
+                deferredPrompt.prompt();
+                // ユーザーの選択を待つ
+                const { outcome } = await deferredPrompt.userChoice;
+                // deferredPromptをリセット
+                deferredPrompt = null;
+                // インストールプロンプトを非表示
+                installPrompt.style.display = 'none';
+            });
+            
+            // 閉じるボタンにイベントリスナーを追加
+            document.getElementById('closePromptButton').addEventListener('click', () => {
+                installPrompt.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
